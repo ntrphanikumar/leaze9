@@ -20,6 +20,6 @@ jobs:
         username: ${{ secrets.DOCKERHUB_USERNAME }}
         password: ${{ secrets.DOCKERHUB_PASSWORD }}
     - name: Docker Build
-      run: docker build invoice --file Dockerfile --tag ntrphanikumar/leaze9-invoice:1.0.0 --tag ntrphanikumar/leaze9-invoice:1.0.0.$(date '+%Y%m%d')
+      run: docker build invoice/. --file Dockerfile --tag ntrphanikumar/leaze9-invoice:1.0.0 --tag ntrphanikumar/leaze9-invoice:1.0.0.$(date '+%Y%m%d')
     - name: Docker Push
       run: docker push ntrphanikumar/leaze9-invoice --all-tags
