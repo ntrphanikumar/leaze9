@@ -1,0 +1,10 @@
+version: '3.8'
+services:
+  invoice:
+    image: ntrphanikumar/leaze9-invoice:1.0.0
+    restart: always
+    ports:
+      - '3000:3000'
+volumes:
+  invoice:
+    driver: local
