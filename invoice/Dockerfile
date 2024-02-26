@@ -1,4 +1,4 @@
-FROM 989431465196.dkr.ecr.ap-south-1.amazonaws.com/vg-base:npm-9.6.6-alpine
+FROM nodejs:21-alpine3.18
 # Installs latest Chromium (100) package.
 RUN apk add --no-cache \
       chromium \
