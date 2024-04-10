@@ -97,7 +97,7 @@ function generateExcel(invoice, invoiceNumber, folder) {
         ["", "Examanious Pvt Ltd GST","", "27AAGCE9870P1ZP","", `${invoice.entity.name} GST`,"","", invoice.entity.gst],
         ["", "Examanious Pvt Ltd PAN","", "AAGCE9870P","", `${invoice.entity.name} PAN`,"","", invoice.entity.pan],
         ["", "Invoice #","", invoiceNumber,"", `${invoice.entity.name} Address`,"","", invoice.entity.address],
-        ["", "Invoice ref #","", invoice.invoiceName,""],
+        ["", "Ref #","", invoice.invoiceName,""],
         ["", "Invoice date","", invoice.invoiceDate,""],
         [],
         ["",invoice.invoiceSubject],
