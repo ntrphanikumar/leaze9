@@ -10,8 +10,8 @@ const fs = require('fs')
 const archiver = require('archiver');
 const XLSX = require('xlsx');
 
-const TEMPLATE = fs.readFileSync('pages/api/invoice/invoice_template.html').toString()
-const SIGN_BINARY = fs.readFileSync('pages/api/invoice/sign.jpeg').toString('base64')
+const TEMPLATE = fs.readFileSync('pages/api/invoice_v2/invoice_template.html').toString()
+const SIGN_BINARY = fs.readFileSync('pages/api/invoice_v2/sign.jpeg').toString('base64')
 
 let sharedBrowser = null;
 async function getBrowser() {
@@ -170,20 +170,6 @@ export default async function handler(req, res) {
         const nextNum = '000000' + invoiceNum;
         return `${content.invoiceType[0]}${nextNum.substring(nextNum.length - 6)}`;
     };
-    // for (let i = 0; i < htmls.length; i += chunkSize) {
-    //     const chunk = htmls.slice(i, i + chunkSize);
-    //     const invoiceNumber = (content, invoiceNum) => {
-    //         const nextNum = '000000' + invoiceNum
-    //         return `${content.invoiceType[0]}${nextNum.substring(nextNum.length-6)}`
-    //     }
-    //     await Promise.all(chunk.map(async (content, idx) => {
-    //         const inum = invoiceNumber(content, nextInvNum + idx)
-    //         const totals = generateExcel(content, inum, folder)
-    //         invoiceTrackerDetails.push([`${content.entity.code} ${content.entity.state}`, content.subjectMonth, inum, content.invoiceName, content.invoiceBillingDate].concat(totalsToInt(totals, 1)))
-    //         return await generatePDFFile(content, inum, folder)
-    //     }))
-    //     nextInvNum += chunk.length
-    // }
     await runWithConcurrencyLimit(
         concurrencyLimit,
         htmls.map((content, idx) => async () => {
@@ -213,20 +199,20 @@ export default async function handler(req, res) {
     console.log(new Date(), 'Completed writing new workbook')
 
     var archive = archiver('zip');
+    archive.on('error', (err) => {
+        console.error("Invoice ZIP Stream Error:", err.message);
+        console.error(err.stack);
+        res.end();  // End response safely, don't send JSON after pipe
+    });
+
+    res.on('close', function () {try{fs.rmSync(folder, { recursive: true, force: true }); fs.unlinkSync(input);console.log("Temp folder and file cleaned up");} catch(e){console.log(e)}})
+    // res.on('error', function(err){console.log(err);res.status(500).json({"message": "Failed to generate invoice zip"});})
     // fix: content-type spelling
-    res.setHeader('Content-Type', 'application/octet-stream');
+    res.setHeader('Content-Type', 'application/zip');
     res.setHeader('Content-Disposition', `attachment; filename=${folder}.zip`);
     res.setHeader('Connection', 'keep-alive');
     res.setHeader('Transfer-Encoding', 'chunked');
     res.flushHeaders();
-
-    res.on('close', function () {try{fs.rmSync(folder, { recursive: true, force: true }); fs.unlinkSync(input);console.log("Temp folder and file cleaned up");} catch(e){console.log(e)}})
-    // res.on('error', function(err){console.log(err);res.status(500).json({"message": "Failed to generate invoice zip"});})
-    res.on('error', function (err) {
-        console.error("Invoice ZIP Stream Error:", err.message);
-        console.error(err.stack);
-        res.status(500).json({ message: `Failed to generate invoice zip`, error: err.message});
-    });
     archive.pipe(res);
     archive.directory(folder, false);
     archive.finalize();

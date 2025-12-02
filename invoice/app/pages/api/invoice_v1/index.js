@@ -10,8 +10,8 @@ const fs = require('fs')
 const archiver = require('archiver');
 const XLSX = require('xlsx');
 
-const TEMPLATE = fs.readFileSync('pages/api/invoice/invoice_template.html').toString()
-const SIGN_BINARY = fs.readFileSync('pages/api/invoice/sign.jpeg').toString('base64')
+const TEMPLATE = fs.readFileSync('pages/api/invoice_v1/invoice_template.html').toString()
+const SIGN_BINARY = fs.readFileSync('pages/api/invoice_v1/sign.jpeg').toString('base64')
 
 let sharedBrowser = null;
 async function getBrowser() {
