@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>File Upload with Fetch API</title>
+<style>
+    *{
+      box-sizing: border-box;
+    }
+    body {
+      font-family: Arial, sans-serif;
+    }
+    .clear {
+      clear: both;
+      }
+    .fl_upld_form{
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 90vh;
+    }
+    .container {
+      max-width: 500px;
+      margin: 50px auto 60px;
+      padding: 20px 20px 50px;
+      border: 3px solid #e9e9e9;
+      border-radius: 10px;
+      background-color: #effaff;
+    }
+    .fl_upld_form h2{
+      text-align: center;
+      font-size: 28px;
+      margin-bottom: 20px;
+    }
+    .fl_upld_form .input-container{
+      margin-bottom: 20px;
+      width: 100%;
+      float: left;
+      margin-right: 0;
+    }
+    .fl_upld_form .input-container:nth-child(3){
+      margin-right: 0;
+    }
+    .fl_upld_form .input-container.file_input{
+      width: 100%;
+      margin-right: 0;
+    }
+    .fl_upld_form input {
+    border: 1px solid #a3a3a3;
+    padding: 10px 10px;
+    border-radius: 5px;
+    color: #000;
+    font-size: 14px;
+    background-color: transparent;
+}
+    .fl_upld_form form label {
+      font-size: 14px;
+      color: #000;
+      margin-bottom: 5px;
+      display: block;
+    }
+    .fl_upld_form input{
+      margin-bottom: 5px;
+      width: 100%;
+    }
+    .fl_upld_form span.formats{
+      font-size: 12px;
+      display: block;
+    }
+    .fl_upld_form #uploadButton {
+    margin: 0 auto;
+    display: block;
+    font-size: 16px;
+    padding: 15px 40px;
+    border: none;
+    background-color: #3076f0;
+    color: #fff;
+    border-radius: 5px;
+    cursor: pointer;
+}
+#statusMessage {
+      text-align: center;
+      margin-top: 15px;
+      font-weight: bold;
+      color: #000;
+    }
+.input-container label {
+    font-weight: 600;
+    margin-bottom: 6px;
+    display: block;
+  }
+.ledger-inline {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-top: 10px;
+  }
+
+  .ledger-inline label.main-label {
+    font-weight: 600;
+    min-width: 140px; /* keeps spacing consistent */
+  }
+
+  .ledger-inline .option {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+
+  .ledger-inline input[type="radio"] {
+    transform: scale(1.1);
+    cursor: pointer;
+  }
+</style>
+</head>
+<body>
+<div class="fl_upld_form">
+<div class="container">
+<h2>Upload Invoice File</h2>
+<form>
+<div class="input-container file_input">
+<label for="fileInput">Select File:</label>
+<input type="file" id="fileInput" name="fileInput" accept=".xls,.xlsx,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet">
+<span class="formats">Supported file formats: .xlsx</span>
+</div>
+<div class="input-container">
+<label for="billingDate">Billing Date:</label>
+<input type="date" id="billingDate" name="billingDate">
+</div>
+<div class="input-container">
+  <div class="ledger-inline">
+    <label class="main-label">Process by Lender:</label>
+    <div class="option">
+      <label>Yes</label>
+      <input type="radio" name="processbyBank" value="true">
+    </div>
+    <div class="option">
+      <label>No</label>
+      <input type="radio" name="processbyBank" value="false" checked>
+    </div>
+  </div>
+</div>
+<!-- <div class="input-container">
+<label for="invoiceStartSeq">Invoice Start Sequence:</label>
+<input type="text" id="invoiceStartSeq" name="invoiceStartSeq" placeholder="Invoice Start Sequence">
+</div> -->
+<div class="clear"></div>
+<button type="button" id="uploadButton">Upload</button>
+</form>
+<div id="statusMessage"></div>
+<div id="download_file"></div>
+</div>
+</div>
+<script>
+    const uploadButton = document.getElementById('uploadButton');
+    const fileInput = document.getElementById('fileInput');
+    const statusMessage = document.getElementById('statusMessage');
+    uploadButton.addEventListener('click', async () => {
+      const billingDateValue = document.getElementById('billingDate').value;
+      if (!billingDateValue) {
+        statusMessage.style.color = 'red';
+        statusMessage.innerText = 'Please select a billing date.';
+        return;
+      }
+      const billingDateObject = new Date(billingDateValue);
+      // const billingDate = billingDateObject.getTime() + new Date().getTimezoneOffset()*60*1000;
+      const billingDate = billingDateObject.getTime();
+      if (Number.isNaN(billingDate)) {
+        statusMessage.style.color = 'red';
+        statusMessage.innerText = 'Invalid billing date. Please pick a valid date.';
+        console.error('Invalid billing date value:', billingDateValue);
+        return;
+      }
+      // const invoiceStartSeq = document.getElementById('invoiceStartSeq').value;
+      // const endpoint = `/api/invoice?billingDate=${billingDate}`;
+      // Get selected radio value for processbyBank
+      const processbyBankValue = document.querySelector('input[name="processbyBank"]:checked').value;
+      // Construct the endpoint properly
+      const endpoint = `/api/invoice_v2?billingDate=${billingDate}&processbyBank=${processbyBankValue}`;
+      console.log("Requesting endpoint:", endpoint);
+      const file = fileInput.files[0];
+      if (!file) {
+        statusMessage.style.color = 'red';
+        statusMessage.innerText = 'Please select a file before uploading.';
+        return;
+      }
+
+      statusMessage.style.color = 'green';
+      statusMessage.innerText = 'Upload successful & processing...';
+
+      try {
+        //Send the File (Blob) directly.
+        const res = await fetch(endpoint, {
+          method: 'POST',
+          headers: {
+            // Let server know it's binary Excel data. This does NOT change the body.
+            'Content-Type': file.type || 'application/octet-stream',
+            'Accept': 'application/zip,application/octet-stream'
+          },
+          body: file
+      });
+
+      const resClone = res.clone(); // so we can log body text if error
+
+      if (!res.ok) {
+        const errorText = await resClone.text().catch(() => '');
+        console.error('Server responded with error status:', res.status, res.statusText, errorText);
+        throw new Error(`Server error: ${res.status} ${res.statusText}`);
+      }
+
+      const blob = await res.blob();
+      console.log('Received blob from server:', blob);
+
+      const downloadContainer = document.getElementById('download_file');
+      downloadContainer.innerHTML = '';
+
+      const linkDiv = document.createElement('div');
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = 'invoices.zip';
+      link.innerText = 'Download';
+      link.classList.add('download-link');
+
+      linkDiv.appendChild(link);
+      downloadContainer.appendChild(linkDiv);
+
+      statusMessage.style.color = 'green';
+      statusMessage.innerText = 'Processing completed successfully. Download your file below.';
+    } catch (error) {
+      console.error('Upload/processing failed:', error.message);
+      console.error(error.stack);
+      statusMessage.style.color = 'red';
+      statusMessage.innerText = 'Failed to generate invoice zip. Please try again.';
+    }
+  });
+</script>
+</body>
+</html>
