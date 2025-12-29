@@ -327,18 +327,51 @@ async function generatePDFFile(content, invoiceNumber, folder) {
     const outputPath = `${getInvoiceFilename(invoiceNumber, content.invoiceName, content.processingBank, "pdf", folder)}`;
     const htmlContent = content.html.replace('$INVOICE_NUMBER', invoiceNumber);
     try {
+        // const browser = await puppeteer.launch({
+        //     headless: true,
+        //     args: ["--no-sandbox", "--disable-setuid-sandbox"],
+        // });
         const browser = await puppeteer.launch({
-            headless: true,
-            args: ["--no-sandbox", "--disable-setuid-sandbox"],
-        });
+            executablePath: "/usr/bin/chromium",
+            headless: "new",
+            timeout: 120000,
+            args: [
+                "--no-sandbox",
+                "--disable-setuid-sandbox",
+                "--disable-dev-shm-usage",
+                "--disable-gpu",
+                "--no-zygote",
+                "--single-process"
+        ]});
         const page = await browser.newPage();
 
-        await page.setContent(htmlContent, { waitUntil: "networkidle0" });
+        // await page.setContent(htmlContent, { waitUntil: "networkidle0" });
+        await page.setViewport({
+            width: 1280,
+            height: 1800,
+            deviceScaleFactor: 2
+        });
+
+        await page.setRequestInterception(true);
+        page.on("request", req => {
+        const type = req.resourceType();
+        if (["image", "font", "stylesheet"].includes(type)) {
+            req.abort();
+        } else {
+            req.continue();
+        }
+        });
+
+        await page.setContent(htmlContent, {
+            waitUntil: "domcontentloaded",
+            timeout: 120000
+        });
         await page.pdf({
             path: outputPath,
             format: "A4",
             printBackground: true,
             margin: { top: 50, bottom: 20, left: 20, right: 0 },
+            timeout: 120000
         });
 
         await browser.close();
