@@ -163,7 +163,7 @@ export default async function handler(req, res) {
         )
     )).filter(r => r !== undefined);
     // const chunkSize = 4;
-    const concurrencyLimit = 5;
+    const concurrencyLimit = 1;
     let nextInvNum = invoiceStartSeq
     const invoiceTrackerDetails = []
     const invoiceNumber = (content, invoiceNum) => {
@@ -186,7 +186,13 @@ export default async function handler(req, res) {
                 content.invoiceBillingDate,
             ].concat(totalsToInt(totals, 1)));
 
-            await generatePDFFile(content, inum, folder);
+            // await generatePDFFile(content, inum, folder);
+            const pdfStatus = await generatePDFFile(content, inum, folder);
+            if (pdfStatus === 1) {
+                console.log(`[DONE] Invoice ${inum}`);
+            } else {
+                console.log(`[SKIPPED] Invoice ${inum} (PDF failed)`);
+            }
             console.log(`[${new Date().toISOString()}] [DONE] Invoice ${inum}`);
             } catch (err) {
             console.error(`[${new Date().toISOString()}] [ERROR] Generating invoice:`, err);
