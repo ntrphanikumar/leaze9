@@ -175,7 +175,7 @@
       // Get selected radio value for processbyBank
       const processbyBankValue = document.querySelector('input[name="processbyBank"]:checked').value;
       // Construct the endpoint properly
-      const endpoint = `/api/invoice_v2?billingDate=${billingDate}&processbyBank=${processbyBankValue}`;
+      const endpoint = `/leaze9/api/invoice_v2?billingDate=${billingDate}&processbyBank=${processbyBankValue}`;
       console.log("Requesting endpoint:", endpoint);
       const file = fileInput.files[0];
       if (!file) {

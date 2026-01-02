@@ -112,7 +112,7 @@
       // const billingDate = billingDateObject.getTime() + new Date().getTimezoneOffset()*60*1000;
       const billingDate = billingDateObject.getTime();
       // const invoiceStartSeq = document.getElementById('invoiceStartSeq').value;
-      const endpoint = `/api/invoice?billingDate=${billingDate}`;
+      const endpoint = `/leaze9/api/invoice?billingDate=${billingDate}`;
       const file = fileInput.files[0];
       const reader = new FileReader();
       reader.onload = function (event) {
